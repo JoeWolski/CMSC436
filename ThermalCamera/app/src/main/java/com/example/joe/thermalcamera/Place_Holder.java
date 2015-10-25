@@ -1,16 +1,63 @@
 package com.example.joe.thermalcamera;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.HexDump;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
+import android.hardware.usb.UsbManager;
+import android.hardware.usb.UsbDeviceConnection;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Place_Holder extends AppCompatActivity {
+
+
+    private final String TAG = "USB_APP";
+    private TextView mText;
+    private Button mReadButton;
+    private ThermalSensor therm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_place__holder);
+
+        mText = (TextView) findViewById(R.id.recData);
+        mReadButton = (Button) findViewById(R.id.button);
+
+        therm = new ThermalSensor();
+        if(therm.init((UsbManager) getSystemService(Context.USB_SERVICE))) {
+
+            mReadButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    double tmp = therm.read();
+                    mText.setText(Double.toString(tmp));
+                }
+            });
+        } else {
+            mText.setText("Failed to initialize");
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        therm.pause();
     }
 
     @Override
