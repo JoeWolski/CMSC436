@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ThermalViz</string>
+    <string name="action_settings">Settings</string>
+    <string name="gallery">View Gallery</string>
+    <string name="begin_scan">Take Picture</string>
+    <string name="about">About</string>
+</resources>
