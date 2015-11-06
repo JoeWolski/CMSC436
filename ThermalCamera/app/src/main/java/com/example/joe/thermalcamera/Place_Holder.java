@@ -16,6 +16,8 @@ import android.hardware.usb.UsbManager;
 import android.hardware.usb.UsbDeviceConnection;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -29,6 +31,7 @@ public class Place_Holder extends AppCompatActivity {
     private final String TAG = "USB_APP";
     private TextView mText;
     private Button mReadButton;
+    private Switch mLaser;
     private ThermalSensor therm;
 
     @Override
@@ -38,6 +41,7 @@ public class Place_Holder extends AppCompatActivity {
 
         mText = (TextView) findViewById(R.id.recData);
         mReadButton = (Button) findViewById(R.id.button);
+        mLaser = (Switch) findViewById(R.id.laserSwitch);
 
         therm = new ThermalSensor();
         if(therm.init((UsbManager) getSystemService(Context.USB_SERVICE))) {
@@ -47,6 +51,18 @@ public class Place_Holder extends AppCompatActivity {
                 public void onClick(View v) {
                     double tmp = therm.read();
                     mText.setText(Double.toString(tmp));
+                }
+            });
+
+            mLaser.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Log.v(TAG, "Switch pressed!");
+                    if (isChecked) {
+                        therm.setLaser(true);
+                    } else {
+                        therm.setLaser(false);
+                    }
                 }
             });
         } else {

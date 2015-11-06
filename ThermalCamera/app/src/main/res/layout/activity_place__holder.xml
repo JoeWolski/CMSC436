@@ -21,4 +21,14 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="131dp" />
 
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Laser"
+        android:id="@+id/laserSwitch"
+        android:layout_alignTop="@+id/button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="57dp"
+        android:checked="false" />
+
 </RelativeLayout>

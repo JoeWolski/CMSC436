@@ -69,7 +69,7 @@ public class ThermalSensor {
                 if (sPort != null) {
                     try {
                         sPort.open(connection);
-                        sPort.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+                        sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                         mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
                         mExecutor.submit(mSerialIoManager);
                     } catch (IOException e) {
@@ -101,6 +101,25 @@ public class ThermalSensor {
         }
         while(!fresh_data);
         return temp;
+    }
+
+    public void setLaser(boolean on) {
+
+        byte[] send = new byte[2];
+        if(on) {
+            send[0] = 'n';
+
+        } else {
+            send[0] = 'f';
+        }
+        send[1] = '\n';
+
+        try {
+            sPort.write(send, 1000);
+        } catch (IOException e) {
+            Log.v(TAG, "Failed to write");
+        }
+
     }
 
     public void pause() {
