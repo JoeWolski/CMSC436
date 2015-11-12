@@ -1,0 +1,19 @@
+Steps to get opencv working:
+
+
+1. Pull the new changes from git
+
+2. Open the project you want to use opencv with.
+
+3. Launch emulator, even if there is no code in your project.
+
+4. In the terminal in android studio run the following command:
+	"adb install <pathtoopencvfolder>/apk/OpenCV_2.4.11_Manager_2.20_x86.apk" where <pathtoopencvfolder> is the path to the "OpenCV-android-sdk" folder in the root of the git directory, if you don't see it you need to git pull.
+
+5. If it says error no device found go back to step 3.
+
+6. File -> New -> Import Module, in the directory put "<pathtoopencvfolder>/sdk/java"
+
+7. Right click on "app" folder in project structure and select "Open Module Settings", open select the "app" folder on the left and then the dependencies tab on the right, using the green "+" add the opencv module as a dependency.
+
+8. Copy contens of <pathtoopencvfolder>/sdk/native/libs to <yourapp>/app/src/main/jniLibs
