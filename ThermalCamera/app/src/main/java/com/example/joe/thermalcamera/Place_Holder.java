@@ -1,5 +1,6 @@
 package com.example.joe.thermalcamera;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Place_Holder extends AppCompatActivity {
+public class Place_Holder extends Activity {
 
 
     private final String TAG = "USB_APP";
@@ -44,7 +45,7 @@ public class Place_Holder extends AppCompatActivity {
         mLaser = (Switch) findViewById(R.id.laserSwitch);
 
         therm = new ThermalSensor();
-        if(therm.init((UsbManager) getSystemService(Context.USB_SERVICE))) {
+        if(therm.init(this)) {
 
             mReadButton.setOnClickListener(new View.OnClickListener() {
                 @Override

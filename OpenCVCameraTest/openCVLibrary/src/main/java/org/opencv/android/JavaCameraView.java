@@ -37,7 +37,7 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
     private Thread mThread;
     private boolean mStopThread;
 
-    protected Camera mCamera;
+    public Camera mCamera;
     protected JavaCameraFrame[] mCameraFrame;
     private SurfaceTexture mSurfaceTexture;
 
@@ -157,6 +157,9 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
                         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
                     }
 
+                    params.set("iso", "100");
+                    //params.setExposureCompensation(params.getMinExposureCompensation());
+                    params.setExposureCompensation(0);
                     mCamera.setParameters(params);
                     params = mCamera.getParameters();
 

@@ -1,5 +1,6 @@
 package com.example.joe.thermalcamera;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -49,9 +50,9 @@ public class ThermalSensor {
                 }
             };
 
-    public boolean init(UsbManager usbManager) {
+    public boolean init(Activity app) {
 
-        mUsbManager = usbManager;
+        mUsbManager = (UsbManager) app.getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
         if (availableDrivers.isEmpty()) {
             Log.v(TAG, "No Drivers");
