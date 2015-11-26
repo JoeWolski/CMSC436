@@ -13,6 +13,7 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
@@ -24,7 +25,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -38,6 +41,12 @@ public class MainActivity extends Activity implements CvCameraViewListener {
     private boolean              mIsJavaCamera = true;
     private MenuItem             mItemSwitchCamera = null;
     private ThermalSensor mThermal = new ThermalSensor();
+    private boolean hasThermal = false;
+    private boolean hasScanBase = false;
+    private boolean takeScanBase = false;
+    private Mat scanBase = null;
+    private Mat data;
+    private ImageButton mCamButton;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -47,6 +56,7 @@ public class MainActivity extends Activity implements CvCameraViewListener {
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
+                    data = new Mat(new Size(640, 480), CvType.CV_64FC1);
                 } break;
                 default:
                 {
@@ -69,21 +79,29 @@ public class MainActivity extends Activity implements CvCameraViewListener {
 
         setContentView(R.layout.activity_main);
 
-        if (mIsJavaCamera)
-            mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
-        else
-            mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_native_surface_view);
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camview);
 
         mOpenCvCameraView.setMaxFrameSize(640, 480);
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        mCamButton = (ImageButton) findViewById(R.id.imageButton);
+
+        mCamButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Taking background image", Toast.LENGTH_SHORT).show();
+                takeScanBase = true;
+            }
+        });
     }
 
     @Override
     public void onPause() {
-        mThermal.stop();
+        if(hasThermal)
+            mThermal.stop();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
         super.onPause();
@@ -95,6 +113,9 @@ public class MainActivity extends Activity implements CvCameraViewListener {
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
         if(mThermal.start(this)) {
             mThermal.setLaser(true);
+            hasThermal = true;
+        } else {
+            hasThermal = false;
         }
     }
 
@@ -120,13 +141,8 @@ public class MainActivity extends Activity implements CvCameraViewListener {
             mOpenCvCameraView.setVisibility(SurfaceView.GONE);
             mIsJavaCamera = !mIsJavaCamera;
 
-            if (mIsJavaCamera) {
-                mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
-                toastMesage = "Java Camera";
-            } else {
-                mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_native_surface_view);
-                toastMesage = "Native Camera";
-            }
+            mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camview);
+            toastMesage = "Java Camera";
 
             mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
             mOpenCvCameraView.setCvCameraViewListener(this);
@@ -146,15 +162,49 @@ public class MainActivity extends Activity implements CvCameraViewListener {
 
     public Mat onCameraFrame(Mat inputFrame) {
 
-        Point p = findLaser(inputFrame);
+        if(takeScanBase) {
+            if(scanBase != null) {
+                scanBase.release();
+            }
+            scanBase = new Mat();
 
-        if(p != null) {
-            Core.circle(inputFrame, p, 5, new Scalar(255, 0, 0, 50), -1);
-            String temp = Double.toString(mThermal.read());
-            Core.putText(inputFrame, temp, p, Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255,0,0));
+            Imgproc.cvtColor(inputFrame, scanBase, Imgproc.COLOR_RGB2GRAY);
+            hasScanBase = true;
+            takeScanBase = false;
         }
 
-        return inputFrame;
+        if(hasScanBase) {
+            Mat ret;
+
+            Point p = findLaser(inputFrame);
+
+            if (p != null) {
+                Mat mapped = new Mat(new Size(640, 480), CvType.CV_64FC1);
+                ret = new Mat(new Size(640, 480), CvType.CV_8UC1);
+                if (hasThermal) {
+                    double temp = mThermal.read();
+                    double ar[] = new double[1];
+                    ar[0] = temp;
+                    data.put((int) p.y, (int) p.x, ar);
+
+                    Core.MinMaxLocResult r = Core.minMaxLoc(data);
+                    Core.subtract(data, new Scalar(r.minVal), mapped);
+                    Core.multiply(mapped, new Scalar(255.0/(r.maxVal - r.minVal)), mapped);
+
+                    mapped.convertTo(ret, CvType.CV_8UC1);
+                    Core.putText(ret, "Highest temp: " + Double.toString(r.maxVal), p, Core.FONT_HERSHEY_COMPLEX, 1, new Scalar(255, 0, 0));
+                } else {
+                    Log.v(TAG, "No thermal!");
+                }
+                mapped.release();
+            } else {
+                ret = scanBase.clone();
+            }
+
+            return ret;
+        }
+        else
+            return inputFrame;
     }
 
     public Point findLaser(Mat inputFrame) {
@@ -203,7 +253,6 @@ public class MainActivity extends Activity implements CvCameraViewListener {
         if(contours.size() > 0){
             MatOfPoint biggest_cont = contours.get(0);
             double cont_size = Imgproc.contourArea(biggest_cont);
-            int radius = 5;
             for (int i = 1; i < contours.size(); i++) {
                 MatOfPoint cur = contours.get(i);
                 if(Imgproc.contourArea(cur) > cont_size) {
