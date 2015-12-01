@@ -31,9 +31,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by John on 11/7/15.
- */
 public class CameraActivity extends Activity implements CvCameraViewListener {
     private static final String TAG = "OCVSample::Activity";
 
@@ -70,12 +67,9 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.camera_layout);
 
-        if (mIsJavaCamera)
-            mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
-        else
-            mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_native_surface_view);
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
 
         mOpenCvCameraView.setMaxFrameSize(640, 480);
 

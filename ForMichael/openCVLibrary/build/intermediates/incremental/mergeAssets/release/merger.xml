@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/home/joe/CMSC436/project/CMSC436/ForMichael/openCVLibrary/src/main/assets"/></dataSet><dataSet config="release"><source path="/home/joe/CMSC436/project/CMSC436/ForMichael/openCVLibrary/src/release/assets"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="C:\Users\Michael\Documents\02_Programming\cmsc436\CMSC436\ForMichael\openCVLibrary\src\main\assets"/></dataSet><dataSet config="release"><source path="C:\Users\Michael\Documents\02_Programming\cmsc436\CMSC436\ForMichael\openCVLibrary\src\release\assets"/></dataSet></merger>
