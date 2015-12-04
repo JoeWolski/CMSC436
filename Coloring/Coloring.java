@@ -1,4 +1,8 @@
+package com.example.joe.opencvcameratest;
+
 import java.util.Arrays;
+import java.util.Queue;
+
 public class Coloring {
     //Assuming topleft is (0,0)
 
@@ -6,25 +10,62 @@ public class Coloring {
     final int width = 640; //x
 
     //2D array for temperature (row , column) (y,x)
-    //0.0 by default... 0.0 = transparent/not applied to bitmap (default value might have to change)
-    //Look at Arrays.fill()
+    //0.0 by default... contructor sets the intial to -300.0
     float[][] temperatures = new float[height-1][width-1];
+
+    //O = highest accuracy...increases as it gets farther way from initial point
+    //This will keep the spread from overwriting values that are more accurate
+    //Initial value is 5000
+    int[][] certainity  = new int[height-1][width-1];
+
 
     //2D array for holding points
     //0 = no point there, 1 = point there
     int[][] points = new int[height-1][width-1];
 
+    //Queue for points
+    Queue<Point> queue;
 
-    public void run() {
+    //Average Temperature
+    float average = 0;
 
-        while (true){      //replace with (user did not press finish button)
+    public Coloring(){
+        //initializing temperatures to -300.0
+        Arrays.fill(temperatures, -300.0);
 
-            float takenTemp = 0.0f; //whatever was taken (replace with parameter)
-            int takenX = 0; //replace with x coordinate (replace with point.x parameter cast to int)
-            int takenY = 0; //replace with y coordinate (replace with point.y parameter cast to int)
+        //intializing certainity factor
+        Arrays.fill(certainity, 5000);
+
+    }
+
+    public void collectTemp(float[][] temp){
+        int count = 0;
+        for(int y=0; y < height; y++){
+            for(int x=0; x < height; x++){
+                if(temp[y][x] > -300.0){
+                    average = average+ temp[y][x];
+                    count = count + 1;
+                    Point newpoint = new Point(x,y,temp[y][x]);
+                    queue.add(newpoint);
+                }
+            }
+        }
+
+        average = (float) average/(float)count;
+    }
+
+    public void run() { //post processing
+
+        while (queue.peek() != null){      //until queue is empty
+            Point next = queue.remove();
+
+            float takenTemp = next.temperature;
+            int takenX = next.x;
+            int takenY = next.y;
 
             temperatures[takenY][takenX] = takenTemp;
             points[takenY][takenX] = 1;
+            certainity[takenY][takenX] = 0;
             int pointsInRange = rangedPoints(takenY, takenX);
 
             int range = 50 - (2 * (pointsInRange - 1));
@@ -42,56 +83,73 @@ public class Coloring {
                 if(takenY - i <0){ lowerY =false;}
                 if(takenY + i >= height){upperY = false;}
 
-                for(int j = 0; j <= i; i++){
+                for(int j = 0; j <= i; i++){ //fills spread of right and left spaces
                     boolean upper = true; //for y+j is in boundary
                     boolean lower = true;
                     if(takenY - j <0){ upper =false;}
                     if(takenY + j >= height){lower = false;}
 
                     if(upperX){
-                        if(upper){
+                        if(upper && i < certainity[takenY+j][takenX+i]){
                             cellAverage(takenY+j,takenX+i);
+                            certainity[takenY+j][takenX+i] = i;
                         }
-                        if(lower){
+                        if(lower && i < certainity[takenY-j][takenX+i]){
                             cellAverage(takenY-j,takenX+i);
+                            certainity[takenY-j][takenX+i] = i;
                         }
                     }
                     if(lowerX){
-                        if(upper){
+                        if(upper && i < certainity[takenY+j][takenX-i]){
                             cellAverage(takenY+j,takenX-i);
+                            certainity[takenY+j][takenX-i] = i;
                         }
-                        if(lower){
+                        if(lower && i < certainity[takenY-j][takenX-i]){
                             cellAverage(takenY-j,takenX-i);
+                            certainity[takenY+j][takenX-i] = i;
                         }
                     }
                 }
 
-                for(int k = 0; k <= i-1; i++){ //do not need to check corner again
+                for(int k = 0; k <= i-1; i++){ //do not need to check corner again, fills top and bottom
                     boolean upper = true; //for y+j is in boundary
                     boolean lower = true;
                     if(takenX - k <0){ upper =false;}
                     if(takenX + k >= width){lower = false;}
 
                     if(upperY){
-                        if(upper){
+                        if(upper && i < certainity[takenY+i][takenX+k]){
                             cellAverage(takenY+i,takenX+k);
+                            certainity[takenY+i][takenX+k] = i;
                         }
-                        if(lower){
+                        if(lower && i < certainity[takenY+i][takenX-k]){
                             cellAverage(takenY+i,takenX-k);
+                            certainity[takenY+i][takenX-k] = i;
                         }
                     }
                     if(lowerY){
-                        if(upper){
+                        if(upper && i < certainity[takenY-i][takenX+k]){
                             cellAverage(takenY-i,takenX+k);
+                            certainity[takenY-i][takenX+k] = i;
+
                         }
-                        if(lower){
+                        if(lower && i < certainity[takenY-i][takenX+k]){
                             cellAverage(takenY-i,takenX-k);
+                            certainity[takenY-i][takenX+k] = i;
                         }
                     }
                 }
             }
 
+        }
 
+        //fill in remaining space with average
+        for(int y=0; y < height; y++){
+            for(int x=0; x < height; x++){
+                if(temperatures[y][x] <= -299.0){
+                    temperatures[y][x] = average;
+                }
+            }
         }
     }
 

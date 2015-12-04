@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/home/joe/CMSC436/project/CMSC436/ThermalViz/openCVLibrary2411/src/main/assets"/></dataSet><dataSet config="debug"><source path="/home/joe/CMSC436/project/CMSC436/ThermalViz/openCVLibrary2411/src/debug/assets"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="C:\Users\Michael\Documents\02_Programming\cmsc436\CMSC436\ThermalViz\openCVLibrary2411\src\main\assets"/></dataSet><dataSet config="debug"><source path="C:\Users\Michael\Documents\02_Programming\cmsc436\CMSC436\ThermalViz\openCVLibrary2411\src\debug\assets"/></dataSet></merger>
