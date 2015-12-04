@@ -45,8 +45,10 @@ public class MainActivity extends Activity implements CvCameraViewListener {
     private boolean hasScanBase = false;
     private boolean takeScanBase = false;
     private Mat scanBase = null;
+    private Mat scanningMat = null;
     private Mat data;
     private ImageButton mCamButton;
+    private ImageButton mCancleButton;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -87,13 +89,34 @@ public class MainActivity extends Activity implements CvCameraViewListener {
 
         mOpenCvCameraView.setCvCameraViewListener(this);
 
-        mCamButton = (ImageButton) findViewById(R.id.imageButton);
+        mCamButton = (ImageButton) findViewById(R.id.scanButtton);
+        mCancleButton = (ImageButton) findViewById(R.id.cancelButton);
 
         mCamButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Taking background image", Toast.LENGTH_SHORT).show();
-                takeScanBase = true;
+                if(hasScanBase == false) {
+                    if (takeScanBase == false) {
+                        Toast.makeText(MainActivity.this, "Taking background image", Toast.LENGTH_SHORT).show();
+                        takeScanBase = true;
+                        mCamButton.setImageResource(R.drawable.checkbox);
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Saving scan", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        mCancleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(hasScanBase == true) {
+                    hasScanBase = false;
+                    mCamButton.setImageResource(R.drawable.camera_very_small);
+                } else {
+                    finish();
+                }
             }
         });
     }
@@ -167,8 +190,10 @@ public class MainActivity extends Activity implements CvCameraViewListener {
                 scanBase.release();
             }
             scanBase = new Mat();
+            scanningMat = new Mat();
 
             Imgproc.cvtColor(inputFrame, scanBase, Imgproc.COLOR_RGB2GRAY);
+            Imgproc.cvtColor(scanBase, scanningMat, Imgproc.COLOR_GRAY2RGB);
             hasScanBase = true;
             takeScanBase = false;
         }
@@ -179,27 +204,19 @@ public class MainActivity extends Activity implements CvCameraViewListener {
             Point p = findLaser(inputFrame);
 
             if (p != null) {
-                Mat mapped = new Mat(new Size(640, 480), CvType.CV_64FC1);
-                ret = new Mat(new Size(640, 480), CvType.CV_8UC1);
                 if (hasThermal) {
                     double temp = mThermal.read();
                     double ar[] = new double[1];
                     ar[0] = temp;
                     data.put((int) p.y, (int) p.x, ar);
 
-                    Core.MinMaxLocResult r = Core.minMaxLoc(data);
-                    Core.subtract(data, new Scalar(r.minVal), mapped);
-                    Core.multiply(mapped, new Scalar(255.0/(r.maxVal - r.minVal)), mapped);
+                    Core.circle(scanningMat, p, 3, new Scalar(255, 0, 0), -3);
 
-                    mapped.convertTo(ret, CvType.CV_8UC1);
-                    Core.putText(ret, "Highest temp: " + Double.toString(r.maxVal), p, Core.FONT_HERSHEY_COMPLEX, 1, new Scalar(255, 0, 0));
                 } else {
                     Log.v(TAG, "No thermal!");
                 }
-                mapped.release();
-            } else {
-                ret = scanBase.clone();
             }
+            ret = scanningMat.clone();
 
             return ret;
         }

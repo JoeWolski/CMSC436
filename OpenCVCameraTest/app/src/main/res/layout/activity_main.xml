@@ -1,7 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:id="@+id/relativelayout">
 
     <org.opencv.android.JavaCameraView
         android:id="@+id/camview"
@@ -11,12 +12,39 @@
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/imageButton"
+        android:id="@+id/scanButtton"
         android:src="@drawable/camera_very_small"
         android:contentDescription="Button to take image"
         android:background="@null"
-        android:layout_centerVertical="true"
+        android:layout_marginEnd="26dp"
+        android:visibility="visible"
+        android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="25dp" />
+        android:layout_marginTop="95dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/cancelButton"
+        android:src="@drawable/cancel"
+        android:contentDescription="Button to take image"
+        android:background="@null"
+        android:layout_marginEnd="26dp"
+        android:visibility="visible"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="180dp" />
+
+    <!--<ImageButton-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/thing"-->
+        <!--android:contentDescription="Button to take image"-->
+        <!--android:background="@null"-->
+        <!--android:layout_below="@+id/scanButtton"-->
+        <!--android:layout_alignStart="@+id/scanButtton"-->
+        <!--android:layout_marginTop="32dp"-->
+        <!--android:visibility="visible"-->
+        <!--android:src="@drawable/blank" />-->
 
 </RelativeLayout>
