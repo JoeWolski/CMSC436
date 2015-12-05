@@ -1,5 +1,6 @@
 package com.example.team436.thermalviz;
 
+import android.util.Log;
 import android.widget.BaseAdapter;
 import android.app.Activity;
 import android.content.Context;
@@ -30,9 +31,11 @@ public class GalleryAdapter extends BaseAdapter{
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public int getCount ()
-    {
-        return filepath.length;
+    public int getCount () {
+        if(filepath != null)
+            return filepath.length;
+        else
+            return 0;
     }
 
     public Object getItem (int position)
@@ -70,6 +73,8 @@ public class GalleryAdapter extends BaseAdapter{
         }
         bmpOptions.inSampleSize = sampleSize;
         bmpOptions.inJustDecodeBounds = false;
+
+        Log.v("GALLERY", "LOADING IMAGE WITH PATH \"" + filepath[position] + "\"");
         bmp = BitmapFactory.decodeFile(filepath[position], bmpOptions);
         image.setImageBitmap(bmp);
         image.setScaleType(ImageView.ScaleType.FIT_XY);

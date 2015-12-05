@@ -19,9 +19,21 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
         </activity>
 
-        <activity android:name=".CameraActivity"
+        <activity
+            android:name=".CameraActivity"
+            android:label="ThermalViz"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
+            android:name=".GalleryActivity"
             android:label="ThermalViz"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
