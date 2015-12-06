@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.graphics.BitmapFactory;
 import android.widget.AdapterView.OnItemClickListener;
 import java.io.File;
+import java.util.Arrays;
+
 import android.view.View;
 import android.widget.AdapterView;
 import android.graphics.Bitmap;
@@ -54,6 +56,14 @@ public class GalleryActivity extends Activity {
             {
                 FilePathStrings[i] = listFile[i].getAbsolutePath();
             }
+        }
+
+        Arrays.sort(FilePathStrings);
+        int length = FilePathStrings.length;
+        for (int i = 0; i < FilePathStrings.length / 2; i++) {
+            String tmp = FilePathStrings[i];
+            FilePathStrings[i] = FilePathStrings[length - 1 - i];
+            FilePathStrings[length - 1 - i] = tmp;
         }
 
         grid = (GridView)findViewById(R.id.gridview);
