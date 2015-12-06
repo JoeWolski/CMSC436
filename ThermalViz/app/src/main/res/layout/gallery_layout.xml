@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/background_image">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/LinearLayout1"
@@ -13,17 +14,20 @@
             android:id="@+id/gridview"
             android:layout_width="fill_parent"
             android:layout_height="match_parent"
-            android:layout_weight=".85">
+            android:layout_weight=".85"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:paddingTop="2.5dp"
+            android:paddingBottom="2.5dp">
 
         </GridView>
 
         <ImageView
             android:id="@+id/imageView1"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_width="600dp"
+            android:layout_height="337.5dp"
             android:layout_weight=".25"
-            android:scaleType="fitXY"
-            android:src="@drawable/clip" />
+            android:scaleType="center" />
 
     </LinearLayout>
 </LinearLayout>

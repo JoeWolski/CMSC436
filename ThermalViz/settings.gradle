@@ -1,2 +1,1 @@
-include ':app', ':usbSerialForAndroid'
-include ':openCVLibrary2411'
+include ':app', ':openCVLibrary2411', ':usbSerialForAndroid'

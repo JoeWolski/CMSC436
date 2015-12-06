@@ -1,4 +1,4 @@
-package com.example.team436.thermalviz;
+package com.example.root.thermalviz;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

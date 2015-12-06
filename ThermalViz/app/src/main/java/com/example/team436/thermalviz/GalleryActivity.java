@@ -1,7 +1,8 @@
 package com.example.team436.thermalviz;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+//import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 import android.os.Environment;
 import android.widget.GridView;
@@ -20,7 +21,7 @@ import android.graphics.Bitmap;
  * Code based on:
  * http://stackoverflow.com/questions/13418807/how-can-i-display-images-from-a-specific-folder-on-android-gallery
  */
-public class GalleryActivity extends AppCompatActivity{
+public class GalleryActivity extends Activity {
 
     private File file;
     private String[] FilePathStrings;

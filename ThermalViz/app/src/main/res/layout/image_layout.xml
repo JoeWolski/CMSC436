@@ -5,7 +5,7 @@
 
     <ImageView
         android:id="@+id/picture"
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-         />
+        android:layout_height="75dp"
+        android:layout_width="100dp"
+        android:padding="5dp" />
 </RelativeLayout>

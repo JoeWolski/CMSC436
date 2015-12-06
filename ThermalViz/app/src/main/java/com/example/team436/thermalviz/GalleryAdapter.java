@@ -53,31 +53,33 @@ public class GalleryAdapter extends BaseAdapter{
         View vi = convertView;
         if (convertView == null)
             vi = inflater.inflate(R.layout.image_layout, null);
-        ImageView image = (ImageView)vi.findViewById(R.id.image);
+        ImageView image = (ImageView)vi.findViewById(R.id.picture);
         int targetWidth = 100;
-        int targetHeight = 100;
+        int targetHeight = 75;
         BitmapFactory.Options bmpOptions = new BitmapFactory.Options();
         bmpOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filepath[position], bmpOptions);
+        //BitmapFactory.decodeFile(filepath[position], bmpOptions);
         int currHeight = bmpOptions.outHeight;
         int currWidth = bmpOptions.outWidth;
         int sampleSize = 1;
-        if (currHeight > targetHeight || currWidth > targetWidth)
-        {
+        if (currHeight > targetHeight || currWidth > targetWidth) {
             if (currWidth > currHeight)
-                sampleSize = Math.round((float)currHeight
-                        / (float)targetHeight);
+                sampleSize = Math.round((float)currHeight / (float)targetHeight);
             else
-                sampleSize = Math.round((float)currWidth
-                        / (float)targetWidth);
+                sampleSize = Math.round((float)currWidth / (float)targetWidth);
         }
         bmpOptions.inSampleSize = sampleSize;
         bmpOptions.inJustDecodeBounds = false;
 
         Log.v("GALLERY", "LOADING IMAGE WITH PATH \"" + filepath[position] + "\"");
         bmp = BitmapFactory.decodeFile(filepath[position], bmpOptions);
+        if(image == null)
+            Log.v("IMGCHECK", "image is null");
+        if(bmp == null)
+            Log.v("IMGCHECK", "bmp is null");
         image.setImageBitmap(bmp);
-        image.setScaleType(ImageView.ScaleType.FIT_XY);
+        image.setScaleType(ImageView.ScaleType.CENTER);
+
         bmp = null;
         return vi;
     }

@@ -10,12 +10,11 @@
         android:layout_height="fill_parent" />
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:id="@+id/scanButtton"
-        android:src="@drawable/camera_very_small"
         android:contentDescription="Button to take image"
-        android:background="@null"
+        android:background="@drawable/camera_very_small"
         android:layout_marginEnd="26dp"
         android:visibility="visible"
         android:layout_alignParentTop="true"
@@ -23,12 +22,11 @@
         android:layout_marginTop="95dp" />
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:id="@+id/cancelButton"
-        android:src="@drawable/cancel"
         android:contentDescription="Button to take image"
-        android:background="@null"
+        android:background="@drawable/cancel"
         android:layout_marginEnd="26dp"
         android:visibility="visible"
         android:layout_alignParentTop="true"

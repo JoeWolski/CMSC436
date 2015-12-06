@@ -21,6 +21,8 @@ import org.opencv.imgproc.Moments;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -104,19 +106,17 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
             public void onClick(View v) {
                 if (hasScanBase == false) {
                     if (takeScanBase == false) {
-                        Toast.makeText(CameraActivity.this, "Taking background image", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(CameraActivity.this, "Taking background image", Toast.LENGTH_SHORT).show();
                         takeScanBase = true;
-                        mCamButton.setImageResource(R.drawable.checkbox);
+                        mCamButton.setBackgroundResource(R.drawable.checkbox);
+                        if(hasThermal)
+                            mThermal.setLaser(true);
                     }
                 } else {
-                    //Toast.makeText(CameraActivity.this, "Saving scan", Toast.LENGTH_SHORT).show();
-
-//                    for(int k = 0; k < 480; k++) {
-//                        data[k][k] = ((float) k)/((float) 480.0);
-//                    }
-
                     mOpenCvCameraView.disableView();
-                    new ProccessImg(data).execute();
+                    (new ProccessImg(data)).execute();
+                    if(hasThermal)
+                        mThermal.setLaser(false);
                 }
             }
         });
@@ -125,9 +125,12 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
             @Override
             public void onClick(View v) {
 
+                if(hasThermal)
+                    mThermal.setLaser(false);
+
                 if (hasScanBase == true) {
                     hasScanBase = false;
-                    mCamButton.setImageResource(R.drawable.camera_very_small);
+                    mCamButton.setBackgroundResource(R.drawable.camera_very_small);
                 } else {
                     finish();
                 }
@@ -160,7 +163,6 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
             }
         }
         if(mThermal.start(this)) {
-            mThermal.setLaser(true);
             hasThermal = true;
         } else {
             hasThermal = false;
@@ -219,6 +221,8 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
 
             Imgproc.cvtColor(inputFrame, scanBase, Imgproc.COLOR_RGB2GRAY);
             Imgproc.cvtColor(scanBase, scanningMat, Imgproc.COLOR_GRAY2RGB);
+            scanBase.release();
+
             hasScanBase = true;
             takeScanBase = false;
         }
@@ -227,6 +231,7 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
             Mat ret;
 
             Point p = findLaser(inputFrame);
+            inputFrame.release();
 
             if (p != null) {
                 if (hasThermal) {
@@ -239,9 +244,8 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
                     //Log.v(TAG, "No thermal!");
                 }
             }
-            ret = scanningMat.clone();
 
-            return ret;
+            return scanningMat;
         }
         else
             return inputFrame;
@@ -277,14 +281,17 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
         // Find halo
         Mat ranged = new Mat();
         Core.inRange(mHsv, new Scalar(100, 32, 225), new Scalar(150, 255, 255), ranged);
+        mHsv.release();
         //Mat f_frame =ranged.clone();
 
         // Find halo around bright dot
         Core.bitwise_and(ranged, center_mask, ranged);
-        mHsv.release();
         center_mask.release();
 
         // Find biggest resulting contour
+        for (int i = 1; i < contours.size(); i++) {
+            contours.get(i).release();
+        }
         contours.clear();
         Imgproc.findContours(ranged, contours, h, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         h.release();
@@ -304,6 +311,10 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
             Point p = new Point();
             p.x = m.get_m10()/m.get_m00();
             p.y = m.get_m01()/m.get_m00();
+            for (int i = 1; i < contours.size(); i++) {
+                contours.get(i).release();
+            }
+            biggest_cont.release();
 
             return p;
         } else {
@@ -355,155 +366,31 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
 //        }
 //    }
 
-    public Mat heatmap(float[][] arr, ProgressDialog pg) {
-        LinkedList<com.example.team436.thermalviz.Point> points = new LinkedList<com.example.team436.thermalviz.Point>();
-        int rows = 480;
-        int col = 640;
-        float average = 0;
-        int ave_cnt = 0;
-        boolean[][] orig = new boolean[480][640];
-        //float[][] buf1 = new float[480][640];
-        int passes = 640;
-        boolean has_max = false;
-        boolean has_min = false;
-        float min = arr[0][0];
-        float max = arr[0][0];
-
-        pg.setMax(passes);
-
-        for(int i = 0; i < rows; i++) {
-            for(int j = 0; j < col; j++) {
-                if(arr[i][j]  > -300) {
-                    orig[i][j] = true;
-                    average += arr[i][j];
-                    ave_cnt++;
-                    if(arr[i][j] > max || has_max == false) {
-                        max = arr[i][j];
-                        has_max = true;
-                    }
-                    if(arr[i][j] < min || has_min == false)
-                        min = arr[i][j];
-                        has_min = true;
-                } else {
-                    orig[i][j] = false;
-                }
-            }
-        }
-
-        Log.v(TAG, "ARR 480: " + Float.toString(arr[479][479]));
-        Log.v(TAG, "ARR 480: " + Float.toString(arr[479][480]));
-        Log.v(TAG, "MIN: " + Float.toString(min));
-        Log.v(TAG, "MAX: " + Float.toString(max));
-
-        average /= (float) ave_cnt;
-
-        for(int i = 0; i < rows; i++) {
-            for(int j = 0; j < col; j++) {
-                if(arr[i][j]  <= -300) {
-                    arr[i][j] = average;
-                }
-            }
-        }
-
-        for(int k = 0; k < passes; k++) {
-            Log.v(TAG, "PASS: " + Integer.toString(k));
-            for(int i = 0; i < rows; i++) {
-                for (int j = 0; j < col; j++) {
-                    if(!orig[i][j]) {
-                        float avg = 0;
-                        int count = 0;
-
-                        if(j + 1 < 640) {
-                            avg += arr[i][j + 1];
-                            count++;
-                        }
-
-                        if(j - 1 >= 0) {
-                            avg += arr[i][j - 1];
-                            count++;
-                        }
-
-                        if(i + 1 < 480) {
-                            avg += arr[i + 1][j];
-                            count++;
-
-                            if(j + 1 < 640) {
-                                avg += arr[i + 1][j + 1];
-                                count++;
-                            }
-
-                            if(j - 1 >= 0) {
-                                avg += arr[i + 1][j - 1];
-                                count++;
-                            }
-                        }
-
-                        if(i - 1 > 0) {
-                            avg += arr[i - 1][j];
-                            count++;
-
-                            if(j + 1 < 640) {
-                                avg += arr[i - 1][j + 1];
-                                count++;
-                            }
-
-                            if(j - 1 >= 0) {
-                                avg += arr[i - 1][j - 1];
-                                count++;
-                            }
-                        }
-                        if(count > 0) {
-                            avg = avg/((float) count);
-                            arr[i][j] = avg;
-                        }
-                    }
-                }
-            }
-        }
-
-        Mat hsvImg = new Mat(480, 640, CvType.CV_8UC3);
-
-        for(int i = 0; i < 640; i++) {
-            for(int j = 0; j < 480; j++) {
-                byte pix[] = new byte[3];
-                float cur = arr[j][i];
-                //Log.v(TAG, "PIX: " + Float.toString(cur));
-                float val = (1 - ((cur - min)/(max - min)))*125;
-                if(val > 125)
-                    val = 125;
-                if(val < 0)
-                    val = 0;
-                pix[0] = (byte) val;
-                pix[1] = (byte) 255;
-                pix[2] = (byte) 255;
-                hsvImg.put(j, i, pix);
-            }
-        }
-
-        return hsvImg;
-    }
-
-    public class ProccessImg extends AsyncTask<Void, Void, Void> {
-        ProgressDialog progressDialog;
-        float[][] in_data;
+    public class ProccessImg extends AsyncTask<Void, Integer, Void> {
+        public ProgressDialog progressDialog;
+        public float[][] in_data;
         //declare other objects as per your need
 
         public ProccessImg(float[][] arr) {
             super();
             in_data = arr;
+            progressDialog = new ProgressDialog(CameraActivity.this);
         }
 
         @Override
-        protected void onPreExecute()
-        {
-            progressDialog= ProgressDialog.show(CameraActivity.this, "Processing Scan", "", true);
-
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog.setMax(100);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog.setMessage("Processing scan...");
+            progressDialog.setIndeterminate(false);
+            progressDialog.show();
             //do initialization of required objects objects here
-        };
+        }
+
         @Override
-        protected Void doInBackground(Void... params)
-        {
-            publishProgress();
+        protected Void doInBackground(Void... params) {
+            publishProgress(0);
             Mat hsvImg = heatmap(data, progressDialog);
             Mat finishedImage = new Mat();
             Imgproc.cvtColor(hsvImg, finishedImage, Imgproc.COLOR_HSV2BGR);
@@ -523,12 +410,154 @@ public class CameraActivity extends Activity implements CvCameraViewListener {
 
             return null;
         }
+
         @Override
-        protected void onPostExecute(Void result)
-        {
+        protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             progressDialog.dismiss();
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, CameraActivity.this, mLoaderCallback);
-        };
+            hasScanBase = false;
+            mCamButton.setBackgroundResource(R.drawable.camera_very_small);
+            Toast.makeText(CameraActivity.this, "Scan finished!", Toast.LENGTH_SHORT).show();
+            Intent view = new Intent(getApplicationContext(), GalleryActivity.class);
+            startActivity(view);
+            //OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, CameraActivity.this, mLoaderCallback);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... progstr) {
+            super.onProgressUpdate(progstr);
+            Log.v(TAG, "PROGRESS: " + Integer.toString(progstr[0]));
+            progressDialog.setProgress(progstr[0]);
+        }
+
+        public Mat heatmap(float[][] arr, ProgressDialog pg) {
+            LinkedList<com.example.team436.thermalviz.Point> points = new LinkedList<com.example.team436.thermalviz.Point>();
+            int rows = 480;
+            int col = 640;
+            float average = 0;
+            int ave_cnt = 0;
+            boolean[][] orig = new boolean[480][640];
+            //float[][] buf1 = new float[480][640];
+            int passes = 640;
+            boolean has_max = false;
+            boolean has_min = false;
+            float min = arr[0][0];
+            float max = arr[0][0];
+
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < col; j++) {
+                    if (arr[i][j] > -300) {
+                        orig[i][j] = true;
+                        average += arr[i][j];
+                        ave_cnt++;
+                        if (arr[i][j] > max || has_max == false) {
+                            max = arr[i][j];
+                            has_max = true;
+                        }
+                        if (arr[i][j] < min || has_min == false)
+                            min = arr[i][j];
+                        has_min = true;
+                    } else {
+                        orig[i][j] = false;
+                    }
+                }
+            }
+
+            Log.v(TAG, "ARR 480: " + Float.toString(arr[479][479]));
+            Log.v(TAG, "ARR 480: " + Float.toString(arr[479][480]));
+            Log.v(TAG, "MIN: " + Float.toString(min));
+            Log.v(TAG, "MAX: " + Float.toString(max));
+
+            average /= (float) ave_cnt;
+
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < col; j++) {
+                    if (arr[i][j] <= -300) {
+                        arr[i][j] = average;
+                    }
+                }
+            }
+
+            for (int k = 0; k < passes; k++) {
+                //Log.v(TAG, "PASS: " + Integer.toString(k));
+                publishProgress((k * 100) / passes);
+
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < col; j++) {
+                        if (!orig[i][j]) {
+                            float avg = 0;
+                            int count = 0;
+
+                            if (j + 1 < 640) {
+                                avg += arr[i][j + 1];
+                                count++;
+                            }
+
+                            if (j - 1 >= 0) {
+                                avg += arr[i][j - 1];
+                                count++;
+                            }
+
+                            if (i + 1 < 480) {
+                                avg += arr[i + 1][j];
+                                count++;
+
+                                if (j + 1 < 640) {
+                                    avg += arr[i + 1][j + 1];
+                                    count++;
+                                }
+
+                                if (j - 1 >= 0) {
+                                    avg += arr[i + 1][j - 1];
+                                    count++;
+                                }
+                            }
+
+                            if (i - 1 > 0) {
+                                avg += arr[i - 1][j];
+                                count++;
+
+                                if (j + 1 < 640) {
+                                    avg += arr[i - 1][j + 1];
+                                    count++;
+                                }
+
+                                if (j - 1 >= 0) {
+                                    avg += arr[i - 1][j - 1];
+                                    count++;
+                                }
+                            }
+                            if (count > 0) {
+                                avg = avg / ((float) count);
+                                arr[i][j] = avg;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Mat hsvImg = new Mat(480, 640, CvType.CV_8UC3);
+
+            for (int i = 0; i < 640; i++) {
+                for (int j = 0; j < 480; j++) {
+                    byte pix[] = new byte[3];
+                    float cur = arr[j][i];
+                    //Log.v(TAG, "PIX: " + Float.toString(cur));
+                    float val = (1 - ((cur - min) / (max - min))) * 125;
+                    if (val > 125)
+                        val = 125;
+                    if (val < 0)
+                        val = 0;
+                    pix[0] = (byte) val;
+                    pix[1] = (byte) 255;
+                    pix[2] = (byte) 255;
+                    hsvImg.put(j, i, pix);
+                }
+            }
+
+            return hsvImg;
+        }
+
     }
+
 }

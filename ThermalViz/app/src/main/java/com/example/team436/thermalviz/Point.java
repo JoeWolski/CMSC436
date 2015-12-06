@@ -1,6 +1,5 @@
 package com.example.team436.thermalviz;
 
-//Object class for use with Coloring.java
 public class Point {
     public int x;
     public int y;
